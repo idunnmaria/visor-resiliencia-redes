@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Syntropy Command Center</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #0b0c15; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #fff; }
+        
+        #sidebar {
+            position: absolute;
+            top: 0; left: 0; bottom: 0;
+            width: 320px;
+            background: rgba(15, 17, 26, 0.95);
+            border-right: 1px solid #2a2d3e;
+            padding: 20px;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        h2 { color: #00f2ff; font-weight: 300; margin-bottom: 20px; letter-spacing: 1px; }
+        h4 { color: #8892b0; margin-top: 20px; margin-bottom: 10px; font-size: 0.9em; text-transform: uppercase; }
+
+        textarea {
+            width: 100%; height: 80px;
+            background: #1c1f2e; border: 1px solid #3d4257;
+            color: #00f2ff; font-family: monospace; font-size: 11px;
+            padding: 8px; box-sizing: border-box; resize: none;
+            border-radius: 4px;
+        }
+
+        button {
+            background: linear-gradient(45deg, #00f2ff, #0088ff);
+            border: none; padding: 10px; color: #000;
+            font-weight: bold; cursor: pointer; border-radius: 4px;
+            margin-top: 10px; width: 100%; transition: 0.2s;
+        }
+        button:hover { opacity: 0.9; transform: translateY(-1px); }
+        button.danger { background: linear-gradient(45deg, #ff0055, #ff4444); color: white; }
+
+        .stat-box {
+            background: #1c1f2e; padding: 15px; border-radius: 8px; margin-bottom: 10px;
+            border-left: 3px solid #00f2ff;
+        }
+        .stat-value { font-size: 24px; font-weight: bold; }
+        .stat-label { font-size: 12px; color: #8892b0; }
+
+        #chart-container { height: 150px; width: 100%; margin-top: 10px; }
+
+        #canvas-container { position: absolute; top: 0; left: 320px; right: 0; bottom: 0; }
+        
+        .status-indicator {
+            display: inline-block; width: 10px; height: 10px; border-radius: 50%;
+            background: #00f2ff; margin-right: 5px; box-shadow: 0 0 8px #00f2ff;
+        }
+    </style>
+</head>
+<body>
+
+<div id="sidebar">
+    <button onclick="window.location.href='index.html'" class="text-gray-500 hover:text-white mb-4 text-xs uppercase tracking-widest">
+                    <i class="fas fa-chevron-left"></i> Abortar / Volver
+    </button>
+    <h2>SYNTROPY <span style="font-size:0.5em; opacity:0.6">v2.1</span></h2>
+    
+    <div class="stat-box">
+        <div class="stat-value" id="entropy-val">--</div>
+        <div class="stat-label">Nivel de Entropía</div>
+    </div>
+    <div class="stat-box" style="border-color: #00ff88;">
+        <div class="stat-value" id="nodes-val">--</div>
+        <div class="stat-label">Nodos Activos</div>
+    </div>
+
+    <h4>Cargar Datos</h4>
+    <textarea id="jsonInput" placeholder="Pega tu syntropy_100.json aquí..."></textarea>
+    <button onclick="loadData()">INICIALIZAR SISTEMA</button>
+
+    <div id="controls" style="display:none;">
+        <h4>Análisis de Red</h4>
+        <div id="chart-container"><canvas id="strengthChart"></canvas></div>
+
+        <h4>Pruebas de Estrés</h4>
+        <button class="danger" onclick="simulateAttack()">SIMULAR ATAQUE (-20%)</button>
+        <button onclick="resetView()" style="background:#333; color:#fff; margin-top:5px;">RESTAURAR RED</button>
+        <p id="attack-log" style="font-size:11px; color:#ff4444; margin-top:5px; min-height:15px;"></p>
+    </div>
+</div>
+
+<div id="canvas-container"></div>
+
+<script>
+    let scene, camera, renderer, nodesGroup, linksGroup;
+    let originalData = null;
+    let currentNodes = [];
+    let currentLinks = [];
+    let myChart = null;
+
+    function init3D() {
+        const container = document.getElementById('canvas-container');
+        scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x0b0c15, 0.12);
+
+        camera = new THREE.PerspectiveCamera(60, container.clientWidth / container.clientHeight, 0.1, 1000);
+        camera.position.z = 6;
+
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        renderer.setClearColor(0x0b0c15);
+        container.appendChild(renderer.domElement);
+
+        nodesGroup = new THREE.Group();
+        linksGroup = new THREE.Group();
+        scene.add(linksGroup);
+        scene.add(nodesGroup);
+
+        const light = new THREE.PointLight(0xffffff, 1, 100);
+        light.position.set(10, 10, 10);
+        scene.add(light);
+        scene.add(new THREE.AmbientLight(0x404040));
+
+        animate();
+        
+        // Resize handler
+        window.addEventListener('resize', () => {
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+        });
+
+        // Mouse controls
+        let isDragging = false;
+        let previousMousePosition = { x: 0, y: 0 };
+        container.addEventListener('mousedown', () => isDragging = true);
+        container.addEventListener('mouseup', () => isDragging = false);
+        container.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                const deltaMove = { x: e.offsetX - previousMousePosition.x, y: e.offsetY - previousMousePosition.y };
+                nodesGroup.rotation.y += deltaMove.x * 0.005;
+                nodesGroup.rotation.x += deltaMove.y * 0.005;
+                linksGroup.rotation.y += deltaMove.x * 0.005;
+                linksGroup.rotation.x += deltaMove.y * 0.005;
+            }
+            previousMousePosition = { x: e.offsetX, y: e.offsetY };
+        });
+        container.addEventListener('wheel', (e) => {
+            camera.position.z += e.deltaY * 0.005;
+        });
+    }
+
+    function animate() {
+        requestAnimationFrame(animate);
+        nodesGroup.rotation.y += 0.001;
+        linksGroup.rotation.y += 0.001;
+        renderer.render(scene, camera);
+    }
+
+    function loadData() {
+        try {
+            const input = document.getElementById('jsonInput').value;
+            originalData = JSON.parse(input);
+            renderNetwork(originalData);
+            updateStats(originalData);
+            document.getElementById('controls').style.display = 'block';
+        } catch(e) { alert("JSON Inválido"); console.error(e); }
+    }
+
+    function renderNetwork(data) {
+        // Limpiar
+        while(nodesGroup.children.length > 0) nodesGroup.remove(nodesGroup.children[0]);
+        while(linksGroup.children.length > 0) linksGroup.remove(linksGroup.children[0]);
+        
+        currentNodes = data.data.nodes;
+        currentLinks = data.data.connections;
+
+        const scale = 2.5;
+
+        // Render Nodos
+        currentNodes.forEach(node => {
+            const geometry = new THREE.SphereGeometry(
+                node.role === 'hub' ? 0.12 : 0.06, 
+                16, 16
+            );
+            const color = node.role === 'hub' ? 0x00f2ff : 
+                          node.role === 'source' ? 0xffffff : 0x0088ff;
+            
+            const material = new THREE.MeshBasicMaterial({ color: color });
+            const sphere = new THREE.Mesh(geometry, material);
+            sphere.position.set(node.vector[0]*scale, node.vector[1]*scale, node.vector[2]*scale);
+            sphere.userData = { id: node.id }; // Guardar ID para referencia
+            nodesGroup.add(sphere);
+        });
+
+        // Render Enlaces
+        currentLinks.forEach(conn => {
+            const n1 = currentNodes.find(n => n.id === conn.source);
+            const n2 = currentNodes.find(n => n.id === conn.target);
+            if(n1 && n2) {
+                const points = [
+                    new THREE.Vector3(n1.vector[0]*scale, n1.vector[1]*scale, n1.vector[2]*scale),
+                    new THREE.Vector3(n2.vector[0]*scale, n2.vector[1]*scale, n2.vector[2]*scale)
+                ];
+                const geometry = new THREE.BufferGeometry().setFromPoints(points);
+                const material = new THREE.LineBasicMaterial({ 
+                    color: 0xffffff, 
+                    transparent: true, 
+                    opacity: conn.strength * 0.4 
+                });
+                const line = new THREE.Line(geometry, material);
+                linksGroup.add(line);
+            }
+        });
+    }
+
+    function updateStats(data) {
+        document.getElementById('entropy-val').innerText = data.metrics.final_entropy.toFixed(4);
+        document.getElementById('nodes-val').innerText = data.data.nodes.length;
+        
+        // Gráfico de Fuerza
+        const strengths = data.data.connections.map(c => c.strength);
+        // Buckets simples
+        const buckets = [0,0,0,0,0]; // <0.2, 0.4, 0.6, 0.8, 1.0
+        strengths.forEach(s => {
+            const idx = Math.min(Math.floor(s * 5), 4);
+            buckets[idx]++;
+        });
+
+        const ctx = document.getElementById('strengthChart').getContext('2d');
+        if(myChart) myChart.destroy();
+        
+        myChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Débil', 'Bajo', 'Medio', 'Fuerte', 'Sólido'],
+                datasets: [{
+                    label: 'Calidad de Conexión',
+                    data: buckets,
+                    backgroundColor: '#00f2ff',
+                    borderRadius: 3
+                }]
+            },
+            options: {
+                plugins: { legend: { display: false } },
+                scales: { 
+                    y: { display: false },
+                    x: { ticks: { color: '#8892b0', font: {size: 9} }, grid: {display:false} } 
+                }
+            }
+        });
+    }
+
+    function simulateAttack() {
+        if(!originalData) return;
+        
+        // Matar 20% de nodos
+        const killCount = Math.floor(currentNodes.length * 0.2);
+        const survivors = [...currentNodes];
+        
+        for(let i=0; i<killCount; i++) {
+            const idx = Math.floor(Math.random() * survivors.length);
+            survivors.splice(idx, 1);
+        }
+
+        // Reconstruir visualización solo con supervivientes
+        const survivorIds = survivors.map(n => n.id);
+        const survivingLinks = currentLinks.filter(l => 
+            survivorIds.includes(l.source) && survivorIds.includes(l.target)
+        );
+
+        // Actualizar vista manualmente
+        const newData = {
+            data: {
+                nodes: survivors,
+                connections: survivingLinks
+            }
+        };
+        
+        renderNetwork(newData);
+        document.getElementById('nodes-val').innerText = survivors.length;
+        document.getElementById('nodes-val').style.color = '#ff4444';
+        document.getElementById('attack-log').innerText = `¡ALERTA! ${killCount} nodos perdidos. Estructura mantiene integridad.`;
+    }
+
+    function resetView() {
+        if(originalData) {
+            renderNetwork(originalData);
+            document.getElementById('nodes-val').innerText = originalData.data.nodes.length;
+            document.getElementById('nodes-val').style.color = '#fff';
+            document.getElementById('attack-log').innerText = "";
+        }
+    }
+
+    init3D();
+</script>
+</body>
+</html>

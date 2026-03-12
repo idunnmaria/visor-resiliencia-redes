@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualizador de Sintropía 3D</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #050510; font-family: 'Courier New', Courier, monospace; }
+        
+        #ui-container {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            width: 300px;
+            z-index: 10;
+            background: rgba(0, 0, 0, 0.85);
+            padding: 20px;
+            border: 1px solid #00ffff;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.2);
+            color: #fff;
+        }
+        
+        textarea {
+            width: 100%;
+            height: 150px;
+            background: #111;
+            color: #0f0;
+            border: 1px solid #333;
+            font-size: 10px;
+            margin-bottom: 10px;
+            resize: vertical;
+            box-sizing: border-box; /* Asegura que el padding no rompa el ancho */
+        }
+
+        /* Estilo general para botones */
+        button {
+            width: 100%;
+            padding: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            text-transform: uppercase;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        /* Botón Principal (Generar) */
+        .action-btn {
+            background: #008888;
+            color: white;
+            border: none;
+        }
+        .action-btn:hover { background: #00aaaa; }
+
+        /* Botón de Regresar (Nuevo estilo) */
+        .back-btn {
+            background: transparent;
+            border: 1px solid #444;
+            color: #888;
+            font-size: 11px;
+            margin-bottom: 15px; /* Separación del título */
+            padding: 8px;
+        }
+        .back-btn:hover {
+            border-color: #00ffff;
+            color: #00ffff;
+            background: rgba(0, 255, 255, 0.1);
+        }
+
+        #stats { margin-top: 10px; font-size: 12px; color: #aaa; }
+        .legend { display: flex; align-items: center; margin-top: 5px; font-size: 11px; }
+        .dot { width: 10px; height: 10px; border-radius: 50%; margin-right: 8px; }
+    </style>
+</head>
+<body>
+
+<div id="ui-container">
+    <!-- Botón movido aquí dentro y con clase CSS -->
+    <button class="back-btn" onclick="window.location.href='index.html'">← Volver a Inicio</button>
+
+    <h3 style="margin-top:0; color:#00ffff;">Syntropy Visualizer</h3>
+    <p style="font-size:12px;">Pega el contenido de tu JSON aquí:</p>
+    
+    <textarea id="jsonInput" placeholder='Pegar JSON aquí...'></textarea>
+    
+    <button class="action-btn" onclick="visualizeData()">Generar Visualización</button>
+    
+    <div id="stats"></div>
+    
+    <div style="margin-top: 15px; border-top: 1px solid #333; padding-top:10px;">
+        <div class="legend"><div class="dot" style="background:#00ffff; box-shadow: 0 0 5px #00ffff;"></div> Nodos Coherentes</div>
+        <div class="legend"><div class="dot" style="background:#ff0055; box-shadow: 0 0 5px #ff0055;"></div> Nodos Caóticos</div>
+        <div class="legend"><div class="dot" style="background:#ffffff; height:2px; border-radius:0;"></div> Conexiones</div>
+    </div>
+    <p style="font-size:10px; color:#666; margin-top:10px;">Usa el mouse para rotar y hacer zoom.</p>
+</div>
+
+<script>
+    let scene, camera, renderer, nodesGroup, connectionsGroup;
+    let isDragging = false;
+    let previousMousePosition = { x: 0, y: 0 };
+
+    function init() {
+        // Escena
+        scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x050510, 0.15);
+
+        // Cámara
+        camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 5;
+
+        // Renderizador
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // Grupos
+        nodesGroup = new THREE.Group();
+        connectionsGroup = new THREE.Group();
+        scene.add(nodesGroup);
+        scene.add(connectionsGroup);
+
+        // Luces
+        const ambientLight = new THREE.AmbientLight(0x404040);
+        scene.add(ambientLight);
+        const pointLight = new THREE.PointLight(0xffffff, 1, 100);
+        pointLight.position.set(10, 10, 10);
+        scene.add(pointLight);
+
+        // Eventos Mouse (Rotación simple)
+        renderer.domElement.addEventListener('mousedown', (e) => isDragging = true);
+        renderer.domElement.addEventListener('mouseup', (e) => isDragging = false);
+        renderer.domElement.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                const deltaMove = { x: e.offsetX - previousMousePosition.x, y: e.offsetY - previousMousePosition.y };
+                const rotateSpeed = 0.005;
+                nodesGroup.rotation.y += deltaMove.x * rotateSpeed;
+                nodesGroup.rotation.x += deltaMove.y * rotateSpeed;
+                connectionsGroup.rotation.y += deltaMove.x * rotateSpeed;
+                connectionsGroup.rotation.x += deltaMove.y * rotateSpeed;
+            }
+            previousMousePosition = { x: e.offsetX, y: e.offsetY };
+        });
+
+        // Zoom con rueda
+        renderer.domElement.addEventListener('wheel', (e) => {
+            camera.position.z += e.deltaY * 0.01;
+            camera.position.z = Math.max(1, Math.min(camera.position.z, 20));
+        });
+
+        // Loop de animación
+        animate();
+    }
+
+    function animate() {
+        requestAnimationFrame(animate);
+        // Rotación automática suave si no se arrastra
+        if (!isDragging) {
+            nodesGroup.rotation.y += 0.001;
+            connectionsGroup.rotation.y += 0.001;
+        }
+        renderer.render(scene, camera);
+    }
+
+    function clearScene() {
+        while(nodesGroup.children.length > 0){ 
+            nodesGroup.remove(nodesGroup.children[0]); 
+        }
+        while(connectionsGroup.children.length > 0){ 
+            connectionsGroup.remove(connectionsGroup.children[0]); 
+        }
+    }
+
+    function visualizeData() {
+        const input = document.getElementById('jsonInput').value;
+        const statsDiv = document.getElementById('stats');
+        
+        try {
+            const json = JSON.parse(input);
+            clearScene();
+            
+            if (!json.data || !json.data.nodes) throw new Error("Formato JSON inválido");
+
+            const nodes = json.data.nodes;
+            const connections = json.data.connections || [];
+            
+            // Escalar posiciones para que se vean bien
+            const scale = 3;
+
+            // 1. Dibujar Nodos
+            nodes.forEach(node => {
+                const geometry = new THREE.SphereGeometry(0.08, 16, 16);
+                let color = 0x00ffff; // Cyan para coherente
+                
+                if (node.status === 'chaotic') {
+                    color = 0xff0055; // Rojo para caótico
+                }
+
+                const material = new THREE.MeshBasicMaterial({ color: color });
+                const sphere = new THREE.Mesh(geometry, material);
+                
+                // Usar vector como posición (x, y, z)
+                sphere.position.set(
+                    node.vector[0] * scale, 
+                    node.vector[1] * scale, 
+                    node.vector[2] * scale
+                );
+                
+                nodesGroup.add(sphere);
+            });
+
+            // 2. Dibujar Conexiones
+            const materialLine = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.3 });
+            
+            connections.forEach(conn => {
+                const sourceNode = nodes.find(n => n.id === conn.source);
+                const targetNode = nodes.find(n => n.id === conn.target);
+
+                if (sourceNode && targetNode) {
+                    const points = [];
+                    points.push(new THREE.Vector3(sourceNode.vector[0]*scale, sourceNode.vector[1]*scale, sourceNode.vector[2]*scale));
+                    points.push(new THREE.Vector3(targetNode.vector[0]*scale, targetNode.vector[1]*scale, targetNode.vector[2]*scale));
+                    
+                    const geometryLine = new THREE.BufferGeometry().setFromPoints(points);
+                    const line = new THREE.Line(geometryLine, materialLine);
+                    connectionsGroup.add(line);
+                }
+            });
+
+            statsDiv.innerHTML = `
+                Sintropía: ${(json.metrics.final_syntropy * 100).toFixed(1)}%<br>
+                Nodos: ${nodes.length}<br>
+                Conexiones: ${connections.length}
+            `;
+
+        } catch (e) {
+            alert("Error al leer JSON. Asegúrate de copiar todo el contenido del archivo generado.");
+            console.error(e);
+        }
+    }
+
+    // Ajustar al cambiar tamaño de ventana
+    window.addEventListener('resize', () => {
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+    });
+
+    init();
+</script>
+</body>
+</html>

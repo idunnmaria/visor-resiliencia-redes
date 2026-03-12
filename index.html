@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proyecto Sintropía | Arquitectura del Orden v5</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&family=Space+Grotesk:wght@300;500;700&display=swap');
+        
+        body { font-family: 'Inter', sans-serif; background-color: #050508; color: #e2e8f0; overflow-x: hidden; }
+        h1, h2, h3 { font-family: 'Space Grotesk', sans-serif; }
+        
+        /* Margen de seguridad para navegación */
+        section, div[id] {
+            scroll-margin-top: 100px; 
+        }
+
+        /* Efecto de cristal */
+        .glass-panel {
+            background: rgba(20, 25, 40, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+        }
+        
+        .neon-text {
+            text-shadow: 0 0 10px rgba(0, 242, 255, 0.5), 0 0 20px rgba(0, 242, 255, 0.3);
+        }
+        
+        #canvas-container {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100vh;
+            z-index: 0; opacity: 0.6;
+        }
+
+        .scroll-indicator {
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
+            40% {transform: translateY(-10px);}
+            60% {transform: translateY(-5px);}
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- 3D BACKGROUND -->
+    <div id="canvas-container"></div>
+
+    <!-- NAV (LIMPIO - SIN BOTÓN REDUNDANTE) -->
+    <nav class="fixed w-full z-50 glass-panel border-b-0 border-white/5 h-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
+            <div class="flex items-center justify-between h-full">
+                <!-- Logo -->
+                <div class="flex items-center gap-3 cursor-pointer" onclick="window.scrollTo(0,0)">
+                    <div class="w-8 h-8 rounded-full bg-cyan-500 shadow-[0_0_15px_rgba(6,182,212,0.6)]"></div>
+                    <span class="text-xl font-bold tracking-wider text-white">SYNTROPY <span class="text-xs text-gray-500 ml-1">v5.0</span></span>
+                </div>
+                <!-- Menú de Navegación -->
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-8">
+                        <a href="#concept" class="hover:text-cyan-400 transition-colors px-3 py-2 rounded-md text-sm font-medium">Concepto</a>
+                        <a href="#metrics" class="hover:text-cyan-400 transition-colors px-3 py-2 rounded-md text-sm font-medium">Métricas</a>
+                        <a href="#resilience" class="hover:text-cyan-400 transition-colors px-3 py-2 rounded-md text-sm font-medium">Resiliencia</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- HERO SECTION -->
+    <section class="relative z-10 h-screen flex flex-col justify-center items-center text-center px-4">
+        <div class="max-w-5xl mx-auto space-y-6 animate-fade-in-up">
+            <div class="inline-block px-4 py-1 rounded-full bg-cyan-900/30 border border-cyan-500/30 text-cyan-400 text-xs font-bold tracking-[0.2em] mb-4">
+                SISTEMA OPERATIVO
+            </div>
+            <h1 class="text-6xl md:text-8xl font-bold text-white mb-2 tracking-tight">
+                El Orden es <br><span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-600 neon-text">Inevitable</span>
+            </h1>
+            <p class="text-xl md:text-2xl text-gray-400 max-w-2xl mx-auto font-light leading-relaxed">
+                Transformamos el ruido digital en estructuras de cristal líquido. 
+                <br>De la entropía absoluta a la sintropía perfecta.
+            </p>
+            
+            <!-- BOTONES PRINCIPALES -->
+            <div class="flex flex-col sm:flex-row gap-6 justify-center mt-12">
+                
+                <!-- 1. Visualizador de Sintropía -->
+                <button onclick="window.location.href='syntropy_viewer.html'" class="group relative px-8 py-4 bg-cyan-500 hover:bg-cyan-400 text-black font-bold rounded-lg transition-all hover:scale-105 shadow-[0_0_20px_rgba(6,182,212,0.4)] flex items-center justify-center gap-3">
+                    <i class="fas fa-cube text-lg"></i>
+                    <span>Ver Sintropía</span>
+                    <div class="absolute inset-0 rounded-lg ring-2 ring-white/20 group-hover:ring-white/50 transition-all"></div>
+                </button>
+
+                <!-- 2. Simulador de Ataque -->
+                <button onclick="window.location.href='simulador_resiliencia.html'" class="group px-8 py-4 glass-panel text-red-400 font-bold rounded-lg hover:bg-red-500/10 hover:border-red-500/50 transition-all border border-white/10 flex items-center justify-center gap-3">
+                    <i class="fas fa-shield-virus text-lg"></i>
+                    <span>Simular Ataque</span>
+                </button>
+
+                <!-- 3. Leer Más -->
+                <button onclick="document.getElementById('concept').scrollIntoView({behavior: 'smooth'})" class="px-8 py-4 text-gray-400 font-medium hover:text-white transition-colors flex items-center justify-center gap-2">
+                    <span>Leer Más</span>
+                    <i class="fas fa-arrow-down text-sm"></i>
+                </button>
+
+            </div>
+        </div>
+
+        <div class="absolute bottom-10 left-1/2 transform -translate-x-1/2 text-gray-500 scroll-indicator">
+            <i class="fas fa-chevron-down text-2xl"></i>
+        </div>
+    </section>
+
+    <!-- METRICS STRIP -->
+    <div id="metrics" class="relative z-20 bg-black/80 border-y border-white/10 backdrop-blur-md">
+        <div class="max-w-7xl mx-auto px-4 py-12 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+            <div>
+                <div class="text-5xl font-bold text-white">0.0%</div>
+                <div class="text-sm text-gray-500 uppercase tracking-widest mt-2">Entropía Final</div>
+            </div>
+            <div>
+                <div class="text-5xl font-bold text-cyan-400">100%</div>
+                <div class="text-sm text-gray-500 uppercase tracking-widest mt-2">Sintropía</div>
+            </div>
+            <div>
+                <div class="text-5xl font-bold text-white">Mesh</div>
+                <div class="text-sm text-gray-500 uppercase tracking-widest mt-2">Topología</div>
+            </div>
+            <div>
+                <div class="text-5xl font-bold text-green-400">99.9%</div>
+                <div class="text-sm text-gray-500 uppercase tracking-widest mt-2">Uptime</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONCEPT SECTION -->
+    <section id="concept" class="relative z-20 py-24 bg-[#050508]">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">Arquitectura del Caos</h2>
+                <div class="w-20 h-1 bg-cyan-500 mx-auto rounded-full"></div>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="glass-panel p-8 rounded-2xl hover:border-cyan-500/50 transition-colors group">
+                    <div class="w-12 h-12 bg-gray-800 rounded-lg flex items-center justify-center mb-6 group-hover:bg-cyan-900/50 transition-colors">
+                        <i class="fas fa-random text-2xl text-cyan-400"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-3">1. Génesis Caótica</h3>
+                    <p class="text-gray-400 leading-relaxed">
+                        Comenzamos con nodos de información dispersos. Vectores aleatorios. Ruido puro. El estado natural de los datos no estructurados.
+                    </p>
+                </div>
+                <div class="glass-panel p-8 rounded-2xl hover:border-cyan-500/50 transition-colors group">
+                    <div class="w-12 h-12 bg-gray-800 rounded-lg flex items-center justify-center mb-6 group-hover:bg-cyan-900/50 transition-colors">
+                        <i class="fas fa-magnet text-2xl text-cyan-400"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-3">2. Convergencia</h3>
+                    <p class="text-gray-400 leading-relaxed">
+                        Nuestro algoritmo aplica gravedad sintrópica. Los nodos no se eliminan; se alinean. Nadie se queda atrás en el proceso de ordenamiento.
+                    </p>
+                </div>
+                <div class="glass-panel p-8 rounded-2xl hover:border-cyan-500/50 transition-colors group">
+                    <div class="w-12 h-12 bg-gray-800 rounded-lg flex items-center justify-center mb-6 group-hover:bg-cyan-900/50 transition-colors">
+                        <i class="fas fa-project-diagram text-2xl text-cyan-400"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-3">3. Estructura Mesh</h3>
+                    <p class="text-gray-400 leading-relaxed">
+                        El resultado no es lineal. Es una malla tridimensional de cristal líquido. Robusta, descentralizada y estéticamente perfecta.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- RESILIENCE SECTION -->
+    <section id="resilience" class="relative z-20 py-24 bg-gradient-to-b from-[#050508] to-[#0a0a12]">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid md:grid-cols-2 gap-16 items-center">
+                <div>
+                    <h2 class="text-3xl md:text-5xl font-bold text-white mb-6">A Prueba de <span class="text-red-500">Fallo</span></h2>
+                    <p class="text-lg text-gray-300 mb-6">
+                        No solo teorizamos. Sometimos a nuestra red perfecta a un ataque simulado, eliminando el <strong>20% de la infraestructura</strong> crítica.
+                    </p>
+                    <ul class="space-y-4">
+                        <li class="flex items-start">
+                            <i class="fas fa-check-circle text-green-500 mt-1 mr-3"></i>
+                            <div>
+                                <strong class="text-white">Integridad del Núcleo</strong>
+                                <p class="text-sm text-gray-400">El sistema evitó el colapso total, manteniendo el 72% del cluster unido.</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check-circle text-green-500 mt-1 mr-3"></i>
+                            <div>
+                                <strong class="text-white">Eficiencia Retenida</strong>
+                                <p class="text-sm text-gray-400">A pesar del daño, la velocidad de transmisión se mantuvo al 67%.</p>
+                            </div>
+                        </li>
+                    </ul>
+                    <button onclick="window.location.href='simulador_resiliencia.html'" class="mt-8 px-6 py-3 border border-red-500/50 text-red-400 rounded-lg hover:bg-red-900/20 transition-colors flex items-center gap-2">
+                        <i class="fas fa-play"></i> Ver Informe de Ataque
+                    </button>
+                </div>
+                <div class="relative">
+                    <div class="absolute inset-0 bg-cyan-500/10 blur-3xl rounded-full"></div>
+                    <div class="glass-panel p-1 rounded-2xl relative border border-white/10">
+                        <div class="bg-[#0f111a] p-6 rounded-xl font-mono text-sm overflow-hidden">
+                            <div class="flex gap-2 mb-4">
+                                <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                                <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                                <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                            </div>
+                            <div class="text-gray-500"># Simulacion de Resiliencia v2.0</div>
+                            <div class="text-purple-400">def</div> <div class="text-blue-400 inline">simulate_attack</div>(network):<br>
+                            &nbsp;&nbsp;damage = <span class="text-orange-400">0.20</span> <span class="text-gray-600">// 20% loss</span><br>
+                            &nbsp;&nbsp;network.remove_nodes(random(damage))<br>
+                            &nbsp;&nbsp;<br>
+                            &nbsp;&nbsp;<div class="text-purple-400 inline">if</div> network.is_operative():<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;<div class="text-yellow-400 inline">print</div>(<span class="text-green-400">"SISTEMA ESTABLE"</span>)<br>
+                            &nbsp;&nbsp;<div class="text-purple-400 inline">else</div>:<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;<div class="text-yellow-400 inline">print</div>(<span class="text-red-400">"FALLO CRÍTICO"</span>)<br>
+                            <br>
+                            <span class="text-green-500">>> SISTEMA ESTABLE (Eficiencia: 67%)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="relative z-20 border-t border-white/5 bg-[#020203] py-12">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <p class="text-gray-600 text-sm">
+                &copy; 2025 Syntropy Project. Todos los derechos reservados.<br>
+                Construido sobre algoritmos de convergencia forzada.
+            </p>
+        </div>
+    </footer>
+
+    <!-- THREE.JS SCRIPT -->
+    <script>
+        let scene, camera, renderer, nodesGroup, linksGroup;
+        const container = document.getElementById('canvas-container');
+
+        function init() {
+            scene = new THREE.Scene();
+            scene.fog = new THREE.FogExp2(0x050508, 0.08);
+
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 8;
+
+            renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            container.appendChild(renderer.domElement);
+
+            nodesGroup = new THREE.Group();
+            linksGroup = new THREE.Group();
+            scene.add(linksGroup);
+            scene.add(nodesGroup);
+
+            const ambient = new THREE.AmbientLight(0x404040);
+            scene.add(ambient);
+            const light = new THREE.PointLight(0x00f2ff, 1, 100);
+            light.position.set(10, 10, 10);
+            scene.add(light);
+
+            generateSyntropyMesh(60);
+
+            window.addEventListener('resize', onWindowResize, false);
+            document.addEventListener('mousemove', onMouseMove, false);
+
+            animate();
+        }
+
+        function generateSyntropyMesh(count) {
+            const nodes = [];
+            const geometry = new THREE.SphereGeometry(0.08, 16, 16);
+            const material = new THREE.MeshBasicMaterial({ color: 0x00f2ff });
+            const hubMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+
+            for(let i=0; i<count; i++) {
+                const isHub = Math.random() > 0.85;
+                const mesh = new THREE.Mesh(geometry, isHub ? hubMaterial : material);
+                
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.acos((Math.random() * 2) - 1);
+                const r = 3 + (Math.random() * 1.5);
+
+                mesh.position.x = r * Math.sin(phi) * Math.cos(theta);
+                mesh.position.y = r * Math.sin(phi) * Math.sin(theta);
+                mesh.position.z = r * Math.cos(phi);
+
+                if(isHub) mesh.scale.set(1.5, 1.5, 1.5);
+                
+                nodes.push(mesh);
+                nodesGroup.add(mesh);
+            }
+
+            const lineMat = new THREE.LineBasicMaterial({ color: 0x0088ff, transparent: true, opacity: 0.15 });
+            
+            nodes.forEach((node, i) => {
+                const neighbors = nodes
+                    .map((n, idx) => ({ idx, dist: node.position.distanceTo(n.position) }))
+                    .sort((a, b) => a.dist - b.dist)
+                    .slice(1, 4);
+
+                neighbors.forEach(n => {
+                    const target = nodes[n.idx];
+                    const points = [node.position, target.position];
+                    const lineGeo = new THREE.BufferGeometry().setFromPoints(points);
+                    const line = new THREE.Line(lineGeo, lineMat);
+                    linksGroup.add(line);
+                });
+            });
+        }
+
+        let mouseX = 0;
+        let mouseY = 0;
+
+        function onMouseMove(event) {
+            mouseX = (event.clientX - window.innerWidth / 2) * 0.0005;
+            mouseY = (event.clientY - window.innerHeight / 2) * 0.0005;
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            nodesGroup.rotation.y += 0.002 + mouseX;
+            nodesGroup.rotation.x += mouseY;
+            linksGroup.rotation.y += 0.002 + mouseX;
+            linksGroup.rotation.x += mouseY;
+
+            const time = Date.now() * 0.001;
+            const scale = 1 + Math.sin(time) * 0.02;
+            nodesGroup.scale.set(scale, scale, scale);
+            linksGroup.scale.set(scale, scale, scale);
+
+            renderer.render(scene, camera);
+        }
+
+        init();
+    </script>
+</body>
+</html>

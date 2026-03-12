@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Builds / misc
+dist/
+build/
+*~
+
+# Generated data
+syntropy*.json
+*attacked*.json
