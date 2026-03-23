@@ -18,22 +18,35 @@ class Metrics:
     gcc_nodes: int
     gcc_pct: float
     avg_clustering: float
-    global_efficiency: float | None  # puede ser costosa en grafos grandes
+    global_efficiency: float | None
+
+
+def _get_payload(data: Dict[str, Any]) -> Dict[str, Any]:
+    # Legacy: {"data": {...}}
+    if isinstance(data.get("data"), dict):
+        return data["data"]
+    return data
 
 
 def build_graph(data: Dict[str, Any]) -> nx.Graph:
     """
-    Admite formatos típicos:
-    - data["nodes"] = [{"id": "...", ...}, ...]
-    - data["edges"] = [{"source": "...", "target": "..."}, ...]
-      o ["links"] en vez de "edges" (por compatibilidad)
+    Soporta:
+    - Nuevo: data["nodes"], data["edges"] (o "links")
+    - Legacy: data["data"]["nodes"], data["data"]["connections"]
     """
-    nodes = data.get("nodes", [])
-    edges = data.get("edges", data.get("links", []))
+    payload = _get_payload(data)
+
+    nodes = payload.get("nodes", []) or data.get("nodes", [])
+    edges = (
+        payload.get("edges")
+        or payload.get("connections")
+        or data.get("edges")
+        or data.get("links")
+        or []
+    )
 
     G = nx.Graph()
 
-    # nodos
     for n in nodes:
         nid = n.get("id") if isinstance(n, dict) else n
         if nid is None:
@@ -41,7 +54,6 @@ def build_graph(data: Dict[str, Any]) -> nx.Graph:
         attrs = n if isinstance(n, dict) else {}
         G.add_node(nid, **attrs)
 
-    # aristas
     for e in edges:
         if not isinstance(e, dict):
             continue
@@ -75,7 +87,6 @@ def compute_metrics(G: nx.Graph, *, compute_efficiency: bool) -> Metrics:
         gcc_pct = (gcc_nodes / n) * 100.0 if n > 0 else 0.0
         avg_clustering = nx.average_clustering(G) if n > 1 else 0.0
 
-        # global_efficiency es O(n^3) en el peor caso; en grafos pequeños está bien
         ge = None
         if compute_efficiency and n <= 400:
             try:
@@ -97,9 +108,6 @@ def compute_metrics(G: nx.Graph, *, compute_efficiency: bool) -> Metrics:
 
 
 def attack_random_node_removal(G: nx.Graph, attack_rate: float, rng: random.Random) -> Tuple[nx.Graph, List[str]]:
-    """
-    Elimina aleatoriamente un % de nodos. attack_rate en [0,1].
-    """
     if G.number_of_nodes() == 0 or attack_rate <= 0:
         return G.copy(), []
 
@@ -116,11 +124,10 @@ def attack_random_node_removal(G: nx.Graph, attack_rate: float, rng: random.Rand
 
 
 def graph_to_json_like(original_data: Dict[str, Any], G: nx.Graph) -> Dict[str, Any]:
-    """
-    Reconstruye nodes/edges manteniendo atributos conocidos del JSON original si existen.
-    """
+    orig_payload = _get_payload(original_data)
+
     orig_nodes_by_id: Dict[str, Dict[str, Any]] = {}
-    for n in original_data.get("nodes", []):
+    for n in orig_payload.get("nodes", []):
         if isinstance(n, dict) and "id" in n:
             orig_nodes_by_id[str(n["id"])] = n
 
@@ -140,19 +147,28 @@ def graph_to_json_like(original_data: Dict[str, Any], G: nx.Graph) -> Dict[str, 
         edges_out.append(e)
 
     out = dict(original_data)
+
+    # Siempre exportamos formato nuevo
     out["nodes"] = nodes_out
     out["edges"] = edges_out
-    out.pop("links", None)  # normalizamos a "edges"
+    out.pop("links", None)
+
+    # Si venía en legacy, preservamos también legacy para no romper consumidores antiguos
+    if isinstance(original_data.get("data"), dict):
+        out["data"] = dict(original_data["data"])
+        out["data"]["nodes"] = nodes_out
+        out["data"]["connections"] = edges_out
+
     return out
 
 
 def main() -> None:
-    p = argparse.ArgumentParser(description="Visor Resiliencia Redes — simulador de ataque (eliminación aleatoria de nodos).")
-    p.add_argument("--input", default="syntropy_100.json", help="Archivo JSON de entrada (legacy: syntropy_100.json).")
-    p.add_argument("--output", default="syntropy_attacked.json", help="Archivo JSON de salida.")
+    p = argparse.ArgumentParser(description="Visor Redes — simulador de ataque (eliminación aleatoria de nodos).")
+    p.add_argument("--input", default="syntropy_100.json", help="JSON de entrada.")
+    p.add_argument("--output", default="syntropy_attacked.json", help="JSON de salida.")
     p.add_argument("--attack-rate", type=float, default=0.30, help="Proporción de nodos eliminados (0..1).")
-    p.add_argument("--seed", type=int, default=None, help="Semilla RNG para reproducibilidad.")
-    p.add_argument("--compute-efficiency", action="store_true", help="Calcula global_efficiency (solo recomendable en grafos pequeños).")
+    p.add_argument("--seed", type=int, default=None, help="Semilla RNG.")
+    p.add_argument("--compute-efficiency", action="store_true", help="Calcula global_efficiency (solo grafos pequeños).")
     args = p.parse_args()
 
     with open(args.input, "r", encoding="utf-8") as f:
@@ -162,13 +178,12 @@ def main() -> None:
     rng = random.Random(args.seed)
 
     before = compute_metrics(G, compute_efficiency=args.compute_efficiency)
-
     H, removed_nodes = attack_random_node_removal(G, args.attack_rate, rng)
     after = compute_metrics(H, compute_efficiency=args.compute_efficiency)
 
     out = graph_to_json_like(data, H)
     out["metadata"] = {
-        "app": "visor-resiliencia-redes",
+        "app": "visor-redes",
         "model": "random_node_removal",
         "attack_rate": args.attack_rate,
         "seed": args.seed,

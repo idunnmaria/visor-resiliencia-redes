@@ -245,3 +245,52 @@ body.with-header .ui-panel{ top: 76px; }
   padding: 12px 12px 14px;
 }
 #metricsPanel.is-closed{ display: none; }
+
+
+/* Home extras */
+.pill{
+  display:inline-block;
+  padding:6px 10px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(255,255,255,.04);
+  font-weight:900;
+  letter-spacing:.2px;
+}
+
+.sep{
+  border:0;
+  height:1px;
+  background: rgba(255,255,255,.10);
+  margin: 22px 0;
+}
+
+.section{ margin: 18px 0; }
+.section-title{
+  margin: 0 0 8px;
+  font-size: 18px;
+  letter-spacing: .2px;
+}
+.section-text{ margin: 0; color: var(--muted); max-width: 85ch; }
+
+.grid{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+@media (max-width: 860px){
+  .grid{ grid-template-columns: 1fr; }
+}
+
+.card{
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(255,255,255,.10);
+  border-radius: 14px;
+  padding: 14px;
+}
+.card h3{ margin: 0 0 8px; font-size: 14px; }
+pre{ margin: 0; overflow:auto; }
+code{ color: rgba(255,255,255,.85); }
+
+.list{ margin: 0; padding-left: 18px; color: var(--muted); }
+.list li{ margin: 6px 0; }
