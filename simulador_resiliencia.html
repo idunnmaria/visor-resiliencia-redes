@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -6,6 +6,46 @@
     <title>Visor Command Center</title>
     
 </div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>canvas{display:block}</style>
+  <link rel="stylesheet" href="assets/theme.css">
+</head>
+<body class="canvas-page with-header">
+
+<header class="app-header">
+  <a class="app-brand" href="index.html">
+    <span class="app-brand-dot"></span>
+    <span>VISOR REDES</span>
+  </a>
+  <nav class="app-nav">
+    <a href="index.html">Inicio</a>
+    <a href="visor_viewer.html">Ver redes</a>
+    <a href="simulador_resiliencia.html">Simular ataque</a>
+  </nav>
+</header>
+
+
+<div id="ui-container">
+  <button class="back-btn" onclick="window.location.href='index.html'">← Volver a Inicio</button>
+
+  <h3 style="margin-top:0; color: var(--accent);">Simular ataque</h3>
+  <p style="font-size:12px; color: var(--muted); margin-top:0;">
+    Carga un JSON y ejecuta una eliminación aleatoria de nodos (demo).
+  </p>
+
+  <label style="display:block; font-size:12px; margin: 8px 0 6px; color: var(--muted);">
+    Cargar archivo JSON:
+  </label>
+  <input id="jsonFile" type="file" accept="application/json,.json" style="width:100%; margin-bottom:10px;">
+
+  <textarea id="jsonInput" placeholder="Pegar JSON aquí..."></textarea>
+
+  <button class="action-btn" onclick="void(0)">INICIALIZAR SISTEMA</button>
+
+  <div id="stats"></div>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>canvas{display:block}</style>
