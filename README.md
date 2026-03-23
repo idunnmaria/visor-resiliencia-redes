@@ -25,7 +25,7 @@ python data\_generator.py \--nodes 100
 
 ### **3\. Simular un Ataque (Resiliencia)**
 
-Pon a prueba tu red. Este script elimina aleatoriamente un porcentaje de nodos y calcula la integridad estructural restante. Generará syntropy\_attacked.json.
+Pon a prueba tu red. Este script elimina aleatoriamente un porcentaje de nodos y calcula la integridad estructural restante. Generará Visor\_attacked.json.
 
 \# Simular un daño del 20%  
 python attack\_simulator.py \--damage 0.2

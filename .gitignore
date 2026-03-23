@@ -21,3 +21,9 @@ build/
 syntropy*.json
 *attacked*.json
 modificaciones.md
+
+# Backups / temp
+*~
+*.bak*
+*.orig
+*.rej

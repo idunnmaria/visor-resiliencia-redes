@@ -1,0 +1,169 @@
+/* Visor Resiliencia Redes — Theme común */
+
+:root{
+  --bg: #050510;
+  --panel-bg: rgba(0,0,0,.85);
+  --panel-bg-2: rgba(0,0,0,.72);
+  --border: rgba(0,255,255,.45);
+  --border-soft: rgba(255,255,255,.15);
+  --accent: #00ffff;
+  --danger: #ff0055;
+
+  --text: #ffffff;
+  --muted: #aaaaaa;
+
+  --input-bg: #111111;
+  --input-border: #333333;
+
+  --radius: 12px;
+  --radius-sm: 8px;
+
+  --shadow: 0 0 15px rgba(0,255,255,.2);
+  --shadow-soft: 0 12px 40px rgba(0,0,0,.35);
+}
+
+html, body{
+  height: 100%;
+}
+
+body{
+  margin: 0;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--text);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+/* Links */
+a{ color: var(--accent); }
+a:hover{ filter: brightness(1.05); }
+
+/* Panel común (mantiene compatibilidad con tus ids/clases actuales) */
+#ui-container, .ui-container, .ui-panel{
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  width: 300px;
+  z-index: 10;
+  background: var(--panel-bg);
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow);
+  color: var(--text);
+}
+
+/* Inputs comunes dentro del panel */
+#ui-container textarea,
+#ui-container input[type="file"],
+#ui-container input[type="text"],
+#ui-container select,
+.ui-container textarea,
+.ui-container input[type="file"],
+.ui-container input[type="text"],
+.ui-container select{
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--input-bg);
+  color: #0f0;
+  border: 1px solid var(--input-border);
+  border-radius: 6px;
+  font-size: 11px;
+}
+
+#ui-container textarea,
+.ui-container textarea{
+  min-height: 140px;
+  resize: vertical;
+  padding: 8px;
+}
+
+#ui-container input[type="file"],
+.ui-container input[type="file"]{
+  padding: 8px;
+  color: var(--muted);
+}
+
+/* Botones comunes SOLO dentro del panel (no tocamos botones globales de index) */
+#ui-container button,
+.ui-container button{
+  width: 100%;
+  padding: 10px;
+  cursor: pointer;
+  font-weight: 800;
+  text-transform: uppercase;
+  border-radius: 6px;
+  transition: all .2s ease;
+}
+
+/* Compatibilidad con tus clases existentes */
+.action-btn{
+  background: #008888;
+  color: white;
+  border: none;
+}
+.action-btn:hover{ background: #00aaaa; }
+
+.back-btn{
+  background: transparent;
+  border: 1px solid #444;
+  color: #888;
+  font-size: 11px;
+  margin-bottom: 15px;
+  padding: 8px;
+  text-transform: none;
+  font-weight: 700;
+}
+.back-btn:hover{
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(0,255,255,.08);
+}
+
+/* Bloques de stats */
+#stats{
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* Panel de métricas (si existe en la página) */
+#metricsToggle{
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 9999;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.2);
+  background: rgba(0,0,0,.55);
+  color: #fff;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  font-weight: 800;
+  letter-spacing: .2px;
+}
+#metricsToggle:hover{
+  border-color: rgba(0,255,255,.7);
+  box-shadow: 0 0 12px rgba(0,255,255,.15);
+}
+
+#metricsPanel{
+  position: fixed;
+  top: 60px;
+  right: 16px;
+  width: 360px;
+  max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 80px);
+  overflow: auto;
+  z-index: 9999;
+  border-radius: 14px;
+  border: 1px solid var(--border-soft);
+  background: var(--panel-bg-2);
+  color: #fff;
+  backdrop-filter: blur(10px);
+  box-shadow: var(--shadow-soft);
+  padding: 12px 12px 14px;
+}
+
+#metricsPanel.is-closed{ display: none; }

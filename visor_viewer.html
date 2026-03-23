@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visor Resiliencia Redes</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #050510; font-family: 'Courier New', Courier, monospace; }
+
+        #ui-container {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            width: 300px;
+            z-index: 10;
+            background: rgba(0, 0, 0, 0.85);
+            padding: 20px;
+            border: 1px solid #00ffff;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.2);
+            color: #fff;
+        }
+
+        textarea {
+            width: 100%;
+            height: 150px;
+            background: #111;
+            color: #0f0;
+            border: 1px solid #333;
+            font-size: 10px;
+            margin-bottom: 10px;
+            resize: vertical;
+            box-sizing: border-box; /* Asegura que el padding no rompa el ancho */
+        }
+
+        /* IMPORTANTE:
+           Antes era "button { width: 100% ... }" y rompía el botón flotante de métricas.
+           Ahora lo acotamos al panel UI izquierdo.
+        */
+        #ui-container button {
+            width: 100%;
+            padding: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            text-transform: uppercase;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        /* Botón Principal (Generar) */
+        .action-btn {
+            background: #008888;
+            color: white;
+            border: none;
+        }
+        .action-btn:hover { background: #00aaaa; }
+
+        /* Botón de Regresar (Nuevo estilo) */
+        .back-btn {
+            background: transparent;
+            border: 1px solid #444;
+            color: #888;
+            font-size: 11px;
+            margin-bottom: 15px; /* Separación del título */
+            padding: 8px;
+        }
+        .back-btn:hover {
+            border-color: #00ffff;
+            color: #00ffff;
+            background: rgba(0, 255, 255, 0.1);
+        }
+
+        #stats { margin-top: 10px; font-size: 12px; color: #aaa; }
+        .legend { display: flex; align-items: center; margin-top: 5px; font-size: 11px; }
+        .dot { width: 10px; height: 10px; border-radius: 50%; margin-right: 8px; }
+
+        /* =========================
+           Panel de métricas (plegable)
+           ========================= */
+
+        #metricsToggle{
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            z-index: 9999;
+            padding: 10px 14px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,.2);
+            background: rgba(0,0,0,.55);
+            color: #fff;
+            cursor: pointer;
+            backdrop-filter: blur(8px);
+            font-weight: 700;
+            letter-spacing: .2px;
+        }
+        #metricsToggle:hover{
+            border-color: rgba(0,255,255,.7);
+            box-shadow: 0 0 12px rgba(0,255,255,.15);
+        }
+
+        #metricsPanel{
+            position: fixed;
+            top: 60px;
+            right: 16px;
+            width: 360px;
+            max-width: calc(100vw - 32px);
+            max-height: calc(100vh - 80px);
+            overflow: auto;
+            z-index: 9999;
+            border-radius: 14px;
+            border: 1px solid rgba(255,255,255,.15);
+            background: rgba(0,0,0,.72);
+            color: #fff;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 12px 40px rgba(0,0,0,.35);
+            padding: 12px 12px 14px;
+        }
+
+        #metricsPanel.is-closed{ display: none; }
+
+        .metrics-header{
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        .metrics-title{
+            font-weight: 800;
+            letter-spacing: .2px;
+            color: #00ffff;
+        }
+
+        #metricsClose{
+            border: 0;
+            background: transparent;
+            color: #fff;
+            cursor: pointer;
+            font-size: 18px;
+            line-height: 1;
+            opacity: .85;
+            padding: 6px 8px;
+            border-radius: 8px;
+        }
+        #metricsClose:hover{
+            opacity: 1;
+            background: rgba(255,255,255,.06);
+        }
+
+        .metrics-status{
+            font-size: 12.5px;
+            opacity: .9;
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px dashed rgba(255,255,255,.25);
+            background: rgba(255,255,255,.06);
+            margin-bottom: 10px;
+        }
+
+        .metrics-content{
+            display: grid;
+            gap: 10px;
+        }
+
+        .metric-grid{
+            display:grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px 12px;
+        }
+
+        .metric-card{
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,.12);
+            background: rgba(255,255,255,.05);
+            padding: 10px;
+        }
+
+        .metric-label{
+            font-size: 12px;
+            opacity: .85;
+        }
+
+        .metric-value{
+            font-size: 16px;
+            font-weight: 800;
+            margin-top: 4px;
+        }
+
+        .metric-sub{
+            font-size: 12px;
+            opacity: .8;
+            margin-top: 2px;
+        }
+    </style>
+    <link rel="stylesheet" href="assets/theme.css">
+</head>
+
+<body>
+
+<!-- Metrics toggle (collapsible) -->
+<button id="metricsToggle" type="button" aria-expanded="false" title="Mostrar/Ocultar métricas">
+  Métricas
+</button>
+
+<div id="metricsPanel" class="is-closed" aria-hidden="true">
+  <div class="metrics-header">
+    <div class="metrics-title">Métricas</div>
+    <button id="metricsClose" type="button" title="Cerrar">✕</button>
+  </div>
+
+  <div id="metricsStatus" class="metrics-status">
+    JSON legacy: sin métricas. Genera/ataca con los scripts para incluirlas.
+  </div>
+
+  <div id="metricsContent" class="metrics-content"></div>
+</div>
+
+<div id="ui-container">
+    <button class="back-btn" onclick="window.location.href='index.html'">← Volver a Inicio</button>
+
+    <h3 style="margin-top:0; color:#00ffff;">Visor Resiliencia Redes</h3>
+    <p style="font-size:12px;">Pega el contenido de tu JSON aquí:</p>
+
+    
+    <label style="display:block; font-size:12px; margin: 8px 0 6px; color:#aaa;">Cargar archivo JSON:</label>
+    <input id="jsonFile" type="file" accept="application/json,.json" style="width:100%; margin-bottom:10px;">
+
+    <textarea id="jsonInput" placeholder='Pegar JSON aquí...'></textarea>
+
+    <button class="action-btn" onclick="visualizeData()">Generar Visualización</button>
+
+    <div id="stats"></div>
+
+    <div style="margin-top: 15px; border-top: 1px solid #333; padding-top:10px;">
+        <div class="legend"><div class="dot" style="background:#00ffff; box-shadow: 0 0 5px #00ffff;"></div> Nodos “coherentes”</div>
+        <div class="legend"><div class="dot" style="background:#ff0055; box-shadow: 0 0 5px #ff0055;"></div> Nodos “caóticos”</div>
+        <div class="legend"><div class="dot" style="background:#ffffff; height:2px; border-radius:0;"></div> Conexiones</div>
+    </div>
+    <p style="font-size:10px; color:#666; margin-top:10px;">Usa el mouse para rotar y hacer zoom.</p>
+</div>
+
+<script>
+    let scene, camera, renderer, nodesGroup, connectionsGroup;
+    let isDragging = false;
+    let previousMousePosition = { x: 0, y: 0 };
+
+    // --- Metrics panel (collapsible) ---
+    const metricsToggle = document.getElementById('metricsToggle');
+    const metricsPanel  = document.getElementById('metricsPanel');
+    const metricsClose  = document.getElementById('metricsClose');
+    const metricsStatus = document.getElementById('metricsStatus');
+    const metricsContent= document.getElementById('metricsContent');
+
+    function openMetrics(){
+      metricsPanel.classList.remove('is-closed');
+      metricsPanel.setAttribute('aria-hidden', 'false');
+      metricsToggle.setAttribute('aria-expanded', 'true');
+    }
+    function closeMetrics(){
+      metricsPanel.classList.add('is-closed');
+      metricsPanel.setAttribute('aria-hidden', 'true');
+      metricsToggle.setAttribute('aria-expanded', 'false');
+    }
+    metricsToggle?.addEventListener('click', () => {
+      const closed = metricsPanel.classList.contains('is-closed');
+      closed ? openMetrics() : closeMetrics();
+    });
+    metricsClose?.addEventListener('click', closeMetrics);
+
+    function fmt(n, digits=2){
+      if (n === null || n === undefined || Number.isNaN(n)) return '—';
+      if (typeof n !== 'number') return String(n);
+      return Number.isInteger(n) ? String(n) : n.toFixed(digits);
+    }
+
+    function renderMetricCard(label, before, after, suffix=''){
+      return `
+        <div class="metric-card">
+          <div class="metric-label">${label}</div>
+          <div class="metric-value">${fmt(after)}${suffix}</div>
+          <div class="metric-sub">Antes: ${fmt(before)}${suffix}</div>
+        </div>
+      `;
+    }
+
+    function updateMetricsPanel(data){
+      const before = data?.metrics_before ?? null;
+      const after  = data?.metrics_after  ?? null;
+
+      // Legacy JSON: no métricas -> avisar, sin romper render
+      if (!before || !after){
+        metricsStatus.style.display = 'block';
+        metricsContent.innerHTML = '';
+        return;
+      }
+
+      metricsStatus.style.display = 'none';
+
+      const cards = [];
+      cards.push(renderMetricCard('Nodos', before.nodes, after.nodes));
+      cards.push(renderMetricCard('Aristas', before.edges, after.edges));
+      cards.push(renderMetricCard('Componentes', before.components, after.components));
+      cards.push(renderMetricCard('GCC', before.gcc_pct, after.gcc_pct, '%'));
+
+      // Extras si vienen
+      if (before.avg_degree !== undefined || after.avg_degree !== undefined)
+        cards.push(renderMetricCard('Grado medio', before.avg_degree, after.avg_degree));
+      if (before.density !== undefined || after.density !== undefined)
+        cards.push(renderMetricCard('Densidad', before.density, after.density));
+      if (before.avg_clustering !== undefined || after.avg_clustering !== undefined)
+        cards.push(renderMetricCard('Clustering', before.avg_clustering, after.avg_clustering));
+      if (before.global_efficiency !== undefined || after.global_efficiency !== undefined)
+        cards.push(renderMetricCard('Eficiencia global', before.global_efficiency, after.global_efficiency));
+
+      metricsContent.innerHTML = `<div class="metric-grid">${cards.join('')}</div>`;
+    }
+
+    // --- Helpers: soportar JSON legacy y nuevo ---
+    function extractGraph(json){
+      // Nuevo: { nodes: [...], edges: [...] }
+      if (json && Array.isArray(json.nodes)) {
+        const nodes = json.nodes;
+        const edges = Array.isArray(json.edges) ? json.edges : (Array.isArray(json.links) ? json.links : []);
+        return { nodes, connections: edges };
+      }
+
+      // Legacy (tu visor actual): { data: { nodes: [...] }, data: { connections: [...] } } o { data: {...}, connections: [...] }
+      if (json && json.data && Array.isArray(json.data.nodes)) {
+        const nodes = json.data.nodes;
+        const connections = Array.isArray(json.data.connections) ? json.data.connections : (Array.isArray(json.data.connections) ? json.data.connections : []);
+        // Nota: en tu código original usabas json.data.connections o json.data.connections || []
+        // mantenemos el comportamiento:
+        return { nodes, connections: Array.isArray(json.data.connections) ? json.data.connections : (Array.isArray(json.data.connections) ? json.data.connections : (Array.isArray(json.connections) ? json.connections : [])) };
+      }
+
+      // Legacy alternativo: { data: { nodes }, connections: [...] }
+      if (json && json.data && Array.isArray(json.data.nodes) && Array.isArray(json.connections)) {
+        return { nodes: json.data.nodes, connections: json.connections };
+      }
+
+      throw new Error("Formato JSON inválido. Esperado: {nodes, edges} o {data:{nodes}, ...}");
+    }
+
+    function init() {
+        // Escena
+        scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x050510, 0.15);
+
+        // Cámara
+        camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 5;
+
+        // Renderizador
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // Grupos
+        nodesGroup = new THREE.Group();
+        connectionsGroup = new THREE.Group();
+        scene.add(nodesGroup);
+        scene.add(connectionsGroup);
+
+        // Luces
+        const ambientLight = new THREE.AmbientLight(0x404040);
+        scene.add(ambientLight);
+        const pointLight = new THREE.PointLight(0xffffff, 1, 100);
+        pointLight.position.set(10, 10, 10);
+        scene.add(pointLight);
+
+        // Eventos Mouse (Rotación simple)
+        renderer.domElement.addEventListener('mousedown', () => isDragging = true);
+        renderer.domElement.addEventListener('mouseup', () => isDragging = false);
+        renderer.domElement.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                const deltaMove = { x: e.offsetX - previousMousePosition.x, y: e.offsetY - previousMousePosition.y };
+                const rotateSpeed = 0.005;
+                nodesGroup.rotation.y += deltaMove.x * rotateSpeed;
+                nodesGroup.rotation.x += deltaMove.y * rotateSpeed;
+                connectionsGroup.rotation.y += deltaMove.x * rotateSpeed;
+                connectionsGroup.rotation.x += deltaMove.y * rotateSpeed;
+            }
+            previousMousePosition = { x: e.offsetX, y: e.offsetY };
+        });
+
+        // Zoom con rueda
+        renderer.domElement.addEventListener('wheel', (e) => {
+            camera.position.z += e.deltaY * 0.01;
+            camera.position.z = Math.max(1, Math.min(camera.position.z, 20));
+        });
+
+        // Loop de animación
+        animate();
+    }
+
+    function animate() {
+        requestAnimationFrame(animate);
+        // Rotación automática suave si no se arrastra
+        if (!isDragging) {
+            nodesGroup.rotation.y += 0.001;
+            connectionsGroup.rotation.y += 0.001;
+        }
+        renderer.render(scene, camera);
+    }
+
+    function clearScene() {
+        while(nodesGroup.children.length > 0){
+            nodesGroup.remove(nodesGroup.children[0]);
+        }
+        while(connectionsGroup.children.length > 0){
+            connectionsGroup.remove(connectionsGroup.children[0]);
+        }
+    }
+
+    function visualizeData() {
+        const input = document.getElementById('jsonInput').value;
+        const statsDiv = document.getElementById('stats');
+
+        try {
+            const json = JSON.parse(input);
+
+            // Panel métricas: tolerante (legacy OK)
+            updateMetricsPanel(json);
+
+            clearScene();
+
+            const graph = extractGraph(json);
+            const nodes = graph.nodes;
+            const connections = graph.connections || [];
+
+            // Escalar posiciones para que se vean bien
+            const scale = 3;
+
+            // 1. Dibujar Nodos
+            nodes.forEach(node => {
+                const geometry = new THREE.SphereGeometry(0.08, 16, 16);
+
+                // Compatibilidad: node.status o node.coherent/flags
+                let color = 0x00ffff; // Cyan por defecto
+                if (node && node.status === 'chaotic') color = 0xff0055;
+
+                // Si viene como booleano "coherent" (nuevo), respétalo
+                if (node && typeof node.coherent === 'boolean') {
+                    color = node.coherent ? 0x00ffff : 0xff0055;
+                }
+
+                const material = new THREE.MeshBasicMaterial({ color: color });
+                const sphere = new THREE.Mesh(geometry, material);
+
+                // Compatibilidad vectores:
+                // - Legacy: node.vector = [x,y,z]
+                // - Nuevo: node.vector = [x,y,z] (igual)
+                // - Alternativo: node.position = {x,y,z} (por si acaso)
+                const v = node?.vector;
+                if (Array.isArray(v) && v.length >= 3) {
+                    sphere.position.set(v[0]*scale, v[1]*scale, v[2]*scale);
+                } else if (node?.position && typeof node.position === 'object') {
+                    sphere.position.set((node.position.x||0)*scale, (node.position.y||0)*scale, (node.position.z||0)*scale);
+                } else {
+                    // si no hay posición, lo ponemos en origen (no rompe)
+                    sphere.position.set(0,0,0);
+                }
+
+                nodesGroup.add(sphere);
+            });
+
+            // 2. Dibujar Conexiones
+            const materialLine = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.3 });
+
+            // Mapa para lookup rápido por id
+            const byId = new Map();
+            nodes.forEach(n => { if (n && n.id !== undefined) byId.set(n.id, n); });
+
+            connections.forEach(conn => {
+                const sId = conn?.source;
+                const tId = conn?.target;
+                const sourceNode = byId.get(sId);
+                const targetNode = byId.get(tId);
+
+                if (sourceNode && targetNode) {
+                    const sv = sourceNode.vector;
+                    const tv = targetNode.vector;
+
+                    if (Array.isArray(sv) && sv.length >= 3 && Array.isArray(tv) && tv.length >= 3) {
+                        const points = [
+                            new THREE.Vector3(sv[0]*scale, sv[1]*scale, sv[2]*scale),
+                            new THREE.Vector3(tv[0]*scale, tv[1]*scale, tv[2]*scale)
+                        ];
+                        const geometryLine = new THREE.BufferGeometry().setFromPoints(points);
+                        const line = new THREE.Line(geometryLine, materialLine);
+                        connectionsGroup.add(line);
+                    }
+                }
+            });
+
+            // Stats: compatible con métricas antiguas y nuevas
+            const hasNewMetrics = json?.metrics_before && json?.metrics_after;
+            const legacySyntropy = json?.metrics?.final_syntropy;
+
+            if (hasNewMetrics) {
+                const b = json.metrics_before;
+                const a = json.metrics_after;
+                statsDiv.innerHTML = `
+                    GCC: ${fmt(a.gcc_pct, 1)}% (antes: ${fmt(b.gcc_pct, 1)}%)<br>
+                    Componentes: ${fmt(a.components)} (antes: ${fmt(b.components)})<br>
+                    Nodos: ${fmt(a.nodes)} (antes: ${fmt(b.nodes)})<br>
+                    Conexiones: ${connections.length}
+                `;
+            } else if (typeof legacySyntropy === 'number') {
+                statsDiv.innerHTML = `
+                    Sintropía: ${(legacySyntropy * 100).toFixed(1)}%<br>
+                    Nodos: ${nodes.length}<br>
+                    Conexiones: ${connections.length}
+                `;
+            } else {
+                statsDiv.innerHTML = `
+                    Nodos: ${nodes.length}<br>
+                    Conexiones: ${connections.length}
+                `;
+            }
+
+        } catch (e) {
+            alert("Error al leer JSON. Asegúrate de copiar todo el contenido del archivo (y que sea JSON válido).");
+            console.error(e);
+        }
+    }
+
+    // Ajustar al cambiar tamaño de ventana
+    window.addEventListener('resize', () => {
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+    });
+
+    
+    // --- JSON file loader (sin copy/paste) ---
+    const jsonFileInput = document.getElementById('jsonFile');
+    jsonFileInput?.addEventListener('change', async (ev) => {
+        const file = ev.target.files?.[0];
+        if (!file) return;
+
+        try {
+            const text = await file.text();
+
+            const textarea = document.getElementById('jsonInput');
+            if (textarea) textarea.value = text;
+
+            // Auto-render tras cargar
+            if (typeof visualizeData === 'function') visualizeData();
+
+        } catch (err) {
+            alert("No se pudo leer el archivo JSON.");
+            console.error(err);
+        } finally {
+            // Permite volver a cargar el mismo archivo
+            ev.target.value = '';
+        }
+    });
+
+    init();
+</script>
+</body>
+</html>

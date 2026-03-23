@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Syntropy Command Center</title>
+    <title>Visor Command Center</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -33,7 +33,7 @@
             border-radius: 4px;
         }
 
-        button {
+        #ui-container button {
             background: linear-gradient(45deg, #00f2ff, #0088ff);
             border: none; padding: 10px; color: #000;
             font-weight: bold; cursor: pointer; border-radius: 4px;
@@ -58,6 +58,7 @@
             background: #00f2ff; margin-right: 5px; box-shadow: 0 0 8px #00f2ff;
         }
     </style>
+    <link rel="stylesheet" href="assets/theme.css">
 </head>
 <body>
 
@@ -65,7 +66,7 @@
     <button onclick="window.location.href='index.html'" class="text-gray-500 hover:text-white mb-4 text-xs uppercase tracking-widest">
                     <i class="fas fa-chevron-left"></i> Abortar / Volver
     </button>
-    <h2>SYNTROPY <span style="font-size:0.5em; opacity:0.6">v2.1</span></h2>
+    <h2>VISOR REDES<span style="font-size:0.5em; opacity:0.6">v2.1</span></h2>
     
     <div class="stat-box">
         <div class="stat-value" id="entropy-val">--</div>
@@ -77,6 +78,10 @@
     </div>
 
     <h4>Cargar Datos</h4>
+    
+    <label style="display:block; font-size:12px; margin: 8px 0 6px; color:#aaa;">Cargar archivo JSON:</label>
+    <input id="jsonFile" type="file" accept="application/json,.json" style="width:100%; margin-bottom:10px;">
+
     <textarea id="jsonInput" placeholder="Pega tu syntropy_100.json aquí..."></textarea>
     <button onclick="loadData()">INICIALIZAR SISTEMA</button>
 
@@ -295,6 +300,34 @@
     }
 
     init3D();
+
+    // --- JSON file loader (sin copy/paste) ---
+    (function(){
+        const jsonFileInput = document.getElementById('jsonFile');
+        const textarea = document.getElementById('jsonInput');
+        jsonFileInput?.addEventListener('change', async (ev) => {
+            const file = ev.target.files?.[0];
+            if (!file) return;
+
+            try {
+                const text = await file.text();
+                if (textarea) textarea.value = text;
+
+                // Auto-ejecutar la acción principal
+                if (typeof loadData === 'function') loadData();
+                if (!true) {
+                    document.querySelector('button[onclick]')?.click();
+                }
+
+            } catch (err) {
+                alert("No se pudo leer el archivo JSON.");
+                console.error(err);
+            } finally {
+                ev.target.value = '';
+            }
+        });
+    })();
+
 </script>
 </body>
 </html>
