@@ -1,4 +1,4 @@
-/* Visor Resiliencia Redes — Theme común */
+/* Visor Redes — Theme común (simple y consistente) */
 
 :root{
   --bg: #050510;
@@ -10,40 +10,142 @@
   --danger: #ff0055;
 
   --text: #ffffff;
-  --muted: #aaaaaa;
+  --muted: rgba(255,255,255,.72);
 
   --input-bg: #111111;
   --input-border: #333333;
 
-  --radius: 12px;
-  --radius-sm: 8px;
+  --radius: 14px;
+  --radius-sm: 10px;
 
-  --shadow: 0 0 15px rgba(0,255,255,.2);
-  --shadow-soft: 0 12px 40px rgba(0,0,0,.35);
+  --shadow: 0 0 15px rgba(0,255,255,.18);
+  --shadow-soft: 0 18px 60px rgba(0,0,0,.42);
 }
 
-html, body{
-  height: 100%;
-}
+html, body{ height: 100%; }
 
 body{
   margin: 0;
-  overflow: hidden;
   background: var(--bg);
   color: var(--text);
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+  overflow-x: hidden;
 }
 
-/* Links */
-a{ color: var(--accent); }
-a:hover{ filter: brightness(1.05); }
+/* Canvas pages */
+body.canvas-page{ overflow: hidden; }
 
-/* Panel común (mantiene compatibilidad con tus ids/clases actuales) */
-#ui-container, .ui-container, .ui-panel{
+/* Header común */
+.app-header{
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 56px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding: 0 18px;
+  z-index: 9998;
+  background: rgba(0,0,0,.5);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+.app-brand{
+  display:flex;
+  align-items:center;
+  gap: 12px;
+  text-decoration:none;
+  color: var(--text);
+  font-weight: 900;
+  letter-spacing: .6px;
+}
+.app-brand-dot{
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: var(--accent);
+  box-shadow: 0 0 18px rgba(0,255,255,.35);
+}
+.app-nav{
+  display:flex;
+  gap: 10px;
+  font-size: 13px;
+}
+.app-nav a{
+  text-decoration:none;
+  color: rgba(255,255,255,.85);
+  padding: 8px 10px;
+  border-radius: 10px;
+}
+.app-nav a:hover{
+  color: #fff;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.08);
+}
+
+/* Home */
+.home{
+  min-height: 100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding: 86px 18px 40px;
+}
+.home-card{
+  width: min(880px, 92vw);
+  background: rgba(0,0,0,.55);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-soft);
+  padding: 28px;
+}
+.home-title{
+  font-size: 44px;
+  line-height: 1.05;
+  margin: 0 0 10px;
+}
+.home-title strong{ color: var(--accent); text-shadow: 0 0 18px rgba(0,255,255,.25); }
+.home-sub{
+  margin: 0 0 18px;
+  color: var(--muted);
+  max-width: 70ch;
+}
+.home-actions{
+  display:flex;
+  gap: 12px;
+  flex-wrap:wrap;
+  margin-top: 16px;
+}
+.btn{
+  appearance: none;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.06);
+  color: #fff;
+  padding: 12px 16px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 900;
+  letter-spacing: .2px;
+  text-decoration:none;
+  display:inline-flex;
+  align-items:center;
+  gap: 10px;
+}
+.btn:hover{
+  border-color: rgba(0,255,255,.45);
+  box-shadow: 0 0 18px rgba(0,255,255,.12);
+}
+.btn-primary{
+  background: rgba(0,255,255,.16);
+  border-color: rgba(0,255,255,.35);
+  color: #fff;
+}
+
+/* Panel común (visor/simulador) */
+#ui-container, .ui-panel{
   position: absolute;
   top: 20px;
   left: 20px;
-  width: 300px;
+  width: 320px;
   z-index: 10;
   background: var(--panel-bg);
   padding: 20px;
@@ -52,102 +154,79 @@ a:hover{ filter: brightness(1.05); }
   box-shadow: var(--shadow);
   color: var(--text);
 }
+body.with-header #ui-container,
+body.with-header .ui-panel{ top: 76px; }
 
-/* Inputs comunes dentro del panel */
-#ui-container textarea,
-#ui-container input[type="file"],
-#ui-container input[type="text"],
-#ui-container select,
-.ui-container textarea,
-.ui-container input[type="file"],
-.ui-container input[type="text"],
-.ui-container select{
+/* Inputs dentro del panel */
+#ui-container textarea, .ui-panel textarea,
+#ui-container input[type="file"], .ui-panel input[type="file"],
+#ui-container input[type="text"], .ui-panel input[type="text"],
+#ui-container select, .ui-panel select{
   width: 100%;
   box-sizing: border-box;
   background: var(--input-bg);
   color: #0f0;
   border: 1px solid var(--input-border);
-  border-radius: 6px;
+  border-radius: 8px;
   font-size: 11px;
 }
-
-#ui-container textarea,
-.ui-container textarea{
+#ui-container textarea, .ui-panel textarea{
   min-height: 140px;
   resize: vertical;
   padding: 8px;
 }
-
-#ui-container input[type="file"],
-.ui-container input[type="file"]{
+#ui-container input[type="file"], .ui-panel input[type="file"]{
   padding: 8px;
   color: var(--muted);
 }
 
-/* Botones comunes SOLO dentro del panel (no tocamos botones globales de index) */
-#ui-container button,
-.ui-container button{
+/* Botones SOLO dentro del panel */
+#ui-container button, .ui-panel button{
   width: 100%;
   padding: 10px;
   cursor: pointer;
-  font-weight: 800;
+  font-weight: 900;
   text-transform: uppercase;
-  border-radius: 6px;
+  border-radius: 10px;
   transition: all .2s ease;
 }
-
-/* Compatibilidad con tus clases existentes */
 .action-btn{
-  background: #008888;
+  background: rgba(0,255,255,.16);
   color: white;
-  border: none;
+  border: 1px solid rgba(0,255,255,.35);
 }
-.action-btn:hover{ background: #00aaaa; }
-
+.action-btn:hover{ background: rgba(0,255,255,.22); }
 .back-btn{
   background: transparent;
-  border: 1px solid #444;
-  color: #888;
+  border: 1px solid rgba(255,255,255,.18);
+  color: rgba(255,255,255,.75);
   font-size: 11px;
   margin-bottom: 15px;
   padding: 8px;
   text-transform: none;
-  font-weight: 700;
+  font-weight: 800;
 }
 .back-btn:hover{
-  border-color: var(--accent);
+  border-color: rgba(0,255,255,.45);
   color: var(--accent);
   background: rgba(0,255,255,.08);
 }
 
-/* Bloques de stats */
-#stats{
-  margin-top: 10px;
-  font-size: 12px;
-  color: var(--muted);
-}
-
-/* Panel de métricas (si existe en la página) */
+/* Panel métricas */
 #metricsToggle{
   position: fixed;
   top: 16px;
   right: 16px;
   z-index: 9999;
   padding: 10px 14px;
-  border-radius: 10px;
+  border-radius: 12px;
   border: 1px solid rgba(255,255,255,.2);
   background: rgba(0,0,0,.55);
   color: #fff;
   cursor: pointer;
   backdrop-filter: blur(8px);
-  font-weight: 800;
-  letter-spacing: .2px;
+  font-weight: 900;
 }
-#metricsToggle:hover{
-  border-color: rgba(0,255,255,.7);
-  box-shadow: 0 0 12px rgba(0,255,255,.15);
-}
-
 #metricsPanel{
   position: fixed;
   top: 60px;
@@ -165,5 +244,4 @@ a:hover{ filter: brightness(1.05); }
   box-shadow: var(--shadow-soft);
   padding: 12px 12px 14px;
 }
-
 #metricsPanel.is-closed{ display: none; }
