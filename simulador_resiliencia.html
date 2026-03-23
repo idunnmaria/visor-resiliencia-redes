@@ -31,7 +31,7 @@
 
   <h3 style="margin-top:0; color: var(--accent);">Simular ataque</h3>
   <p style="font-size:12px; color: var(--muted); margin-top:0;">
-    Carga un JSON y ejecuta una eliminación aleatoria de nodos (demo).
+    Carga un JSON, inicializa y simula un ataque simple.
   </p>
 
   <label style="display:block; font-size:12px; margin: 8px 0 6px; color: var(--muted);">
@@ -41,155 +41,17 @@
 
   <textarea id="jsonInput" placeholder="Pegar JSON aquí..."></textarea>
 
-  <button class="action-btn" onclick="void(0)">INICIALIZAR SISTEMA</button>
+  <button class="action-btn" onclick="loadData()">INICIALIZAR</button>
+  <button class="action-btn" style="margin-top:8px;" onclick="simulateAttack()">SIMULAR ATAQUE</button>
+  <button class="back-btn" style="margin-top:8px;" onclick="resetView()">RESET</button>
 
   <div id="stats"></div>
+  <div style="display:none"><span id="attack-log"></span><span id="canvas-container"></span><span id="controls"></span><span id="entropy-val"></span><span id="nodes-val"></span><span id="strengthChart"></span></div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<style>canvas{display:block}</style>
-  <link rel="stylesheet" href="assets/theme.css">
-</head>
-<body class="canvas-page with-header">
+<div id="container" style="position:fixed; inset:0; z-index:0;"></div>
 
-<header class="app-header">
-  <a class="app-brand" href="index.html">
-    <span class="app-brand-dot"></span>
-    <span>VISOR REDES</span>
-  </a>
-  <nav class="app-nav">
-    <a href="index.html">Inicio</a>
-    <a href="visor_viewer.html">Ver redes</a>
-    <a href="simulador_resiliencia.html">Simular ataque</a>
-  </nav>
-</header>
-
-
-<div id="ui-container">
-  <button class="back-btn" onclick="window.location.href='index.html'">← Volver a Inicio</button>
-
-  <h3 style="margin-top:0; color: var(--accent);">Simular ataque</h3>
-  <p style="font-size:12px; color: var(--muted); margin-top:0;">
-    Carga un JSON y ejecuta una eliminación aleatoria de nodos (demo).
-  </p>
-
-  <label style="display:block; font-size:12px; margin: 8px 0 6px; color: var(--muted);">
-    Cargar archivo JSON:
-  </label>
-  <input id="jsonFile" type="file" accept="application/json,.json" style="width:100%; margin-bottom:10px;">
-
-  <textarea id="jsonInput" placeholder="Pegar JSON aquí..."></textarea>
-
-  <button class="action-btn" onclick="void(0)">INICIALIZAR SISTEMA</button>
-
-  <div id="stats"></div>
-
-  <div id="compat-mount" style="display:none;"><span id="attack-log"></span><span id="canvas-container"></span><span id="controls"></span><span id="entropy-val"></span><span id="nodes-val"></span><span id="strengthChart"></span></div>
-</div>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<style>canvas{display:block}</style>
-  <link rel="stylesheet" href="assets/theme.css">
-</head>
-<body class="canvas-page with-header canvas-page with-header" class="canvas-page with-header canvas-page with-header">
-
-<header class="app-header">
-  <a class="app-brand" href="index.html">
-    <span class="app-brand-dot"></span>
-    <span>VISOR REDES</span>
-  </a>
-  <nav class="app-nav">
-    <a href="index.html">Inicio</a>
-    <a href="visor_viewer.html">Ver redes</a>
-    <a href="simulador_resiliencia.html">Simular ataque</a>
-  </nav>
-</header>
-
-<div id="ui-container">
-  <button class="back-btn" onclick="window.location.href='index.html'">← Volver a Inicio</button>
-
-  <h3 style="margin-top:0; color: var(--accent);">Simular ataque</h3>
-  <p style="font-size:12px; color: var(--muted); margin-top:0;">
-    Carga un JSON y ejecuta una eliminación aleatoria de nodos (demo).
-  </p>
-
-  <label style="display:block; font-size:12px; margin: 8px 0 6px; color: var(--muted);">
-    Cargar archivo JSON:
-  </label>
-  <input id="jsonFile" type="file" accept="application/json,.json" style="width:100%; margin-bottom:10px;">
-
-  <textarea id="jsonInput" placeholder="Pegar JSON aquí..."></textarea>
-
-  <button class="action-btn" onclick="void(0)">
-    INICIALIZAR SISTEMA
-  </button>
-
-  <div id="stats"></div>
-
-  <div id="compat-mount" style="display:none;"><span id="attack-log"></span><span id="canvas-container"></span><span id="controls"></span><span id="entropy-val"></span><span id="nodes-val"></span><span id="strengthChart"></span></div>
-</div>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<style>canvas{display:block}</style>
-  <link rel="stylesheet" href="assets/theme.css">
-</head>
-<body class="canvas-page with-header canvas-page with-header" class="canvas-page with-header canvas-page with-header">
-
-<header class="app-header">
-  <a class="app-brand" href="index.html">
-    <span class="app-brand-dot"></span>
-    <span>VISOR REDES</span>
-  </a>
-  <nav class="app-nav">
-    <a href="index.html">Inicio</a>
-    <a href="visor_viewer.html">Ver redes</a>
-    <a href="simulador_resiliencia.html">Simular ataque</a>
-  </nav>
-</header>
-<div id="ui-container">
-
-
-
-<div id="sidebar">
-    <button onclick="window.location.href='index.html'" class="text-gray-500 hover:text-white mb-4 text-xs uppercase tracking-widest">
-                    <i class="fas fa-chevron-left"></i> Abortar / Volver
-    </button>
-    <h2>VISOR REDES<span style="font-size:0.5em; opacity:0.6">v2.1</span></h2>
-    
-    <div class="stat-box">
-        <div class="stat-value" id="entropy-val">--</div>
-        <div class="stat-label">Nivel de Entropía</div>
-    </div>
-    <div class="stat-box" style="border-color: #00ff88;">
-        <div class="stat-value" id="nodes-val">--</div>
-        <div class="stat-label ui-panel">Nodos Activos</div>
-    </div>
-
-    <h4>Cargar Datos</h4>
-    
-    <label style="display:block; font-size:12px; margin: 8px 0 6px; color:#aaa;">Cargar archivo JSON:</label>
-    <input id="jsonFile" type="file" accept="application/json,.json" style="width:100%; margin-bottom:10px;">
-
-    <textarea id="jsonInput" placeholder="Pega tu JSON aquí..."></textarea>
-    <button onclick="loadData()">INICIALIZAR SISTEMA</button>
-
-    <div id="controls" style="display:none;">
-        <h4>Análisis de Red</h4>
-        <div id="chart-container"><canvas id="strengthChart"></canvas></div>
-
-        <h4>Pruebas de Estrés</h4>
-        <button class="danger" onclick="simulateAttack()">SIMULAR ATAQUE (-20%)</button>
-        <button onclick="resetView()" style="background:#333; color:#fff; margin-top:5px;">RESTAURAR RED</button>
-        <p id="attack-log" style="font-size:11px; color:#ff4444; margin-top:5px; min-height:15px;"></p>
-    </div>
-</div>
-
-<div id="canvas-container"></div>
-
-<script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script><script src="https://cdn.jsdelivr.net/npm/chart.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script><script src="https://cdn.jsdelivr.net/npm/chart.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script><script src="https://cdn.jsdelivr.net/npm/chart.js"></script><script>
     let scene, camera, renderer, nodesGroup, linksGroup;
     let originalData = null;
     let currentNodes = [];
