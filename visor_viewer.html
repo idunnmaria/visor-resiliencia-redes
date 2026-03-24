@@ -203,7 +203,7 @@
 <header class="app-header">
   <a class="app-brand" href="index.html">
     <span class="app-brand-dot"></span>
-    <span>VISOR REDES</span>
+    <span>VISOR DE REDES</span>
   </a>
   <nav class="app-nav">
     <a href="index.html">Inicio</a>
@@ -511,8 +511,6 @@
 
             // Stats: compatible con métricas antiguas y nuevas
             const hasNewMetrics = json?.metrics_before && json?.metrics_after;
-            const legacySyntropy = json?.metrics?.final_syntropy;
-
             if (hasNewMetrics) {
                 const b = json.metrics_before;
                 const a = json.metrics_after;
@@ -520,12 +518,6 @@
                     GCC: ${fmt(a.gcc_pct, 1)}% (antes: ${fmt(b.gcc_pct, 1)}%)<br>
                     Componentes: ${fmt(a.components)} (antes: ${fmt(b.components)})<br>
                     Nodos: ${fmt(a.nodes)} (antes: ${fmt(b.nodes)})<br>
-                    Conexiones: ${connections.length}
-                `;
-            } else if (typeof legacySyntropy === 'number') {
-                statsDiv.innerHTML = `
-                    Sintropía: ${(legacySyntropy * 100).toFixed(1)}%<br>
-                    Nodos: ${nodes.length}<br>
                     Conexiones: ${connections.length}
                 `;
             } else {

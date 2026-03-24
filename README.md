@@ -1,6 +1,6 @@
-# **Proyecto Sintropía | Arquitectura del Orden**
+# **Proyecto Visor Redes| Arquitectura del Orden**
 
-Este proyecto es una visualización interactiva basada en la **Teoría de Sintropía Digital**. Demuestra cómo algoritmos de convergencia forzada pueden transformar ruido aleatorio (caos) en estructuras de malla cristalina altamente ordenadas y resilientes.
+Este proyecto es una visualización interactiva. Demuestra cómo algoritmos de convergencia forzada pueden transformar ruido aleatorio (caos) en estructuras de malla cristalina altamente ordenadas y resilientes.
 
 ## **📂 Estructura del Proyecto**
 
