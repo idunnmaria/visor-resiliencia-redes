@@ -18,7 +18,6 @@ build/
 *~
 
 # Generated data
-syntropy*.json
 *attacked*.json
 modificaciones.md
 
@@ -29,5 +28,7 @@ modificaciones.md
 *.rej
 
 # Generated JSON (local runs)
-syntropy*.json
+*attacked*.json
+# Generated JSON (local runs)
+network*.json
 *attacked*.json
