@@ -1,6 +1,6 @@
-# **Proyecto Sintropía | Arquitectura del Orden**
+# **Proyecto Visor Redes| Arquitectura del Orden**
 
-Este proyecto es una visualización interactiva basada en la **Teoría de Sintropía Digital**. Demuestra cómo algoritmos de convergencia forzada pueden transformar ruido aleatorio (caos) en estructuras de malla cristalina altamente ordenadas y resilientes.
+Este proyecto es una visualización interactiva. Demuestra cómo algoritmos de convergencia forzada pueden transformar ruido aleatorio (caos) en estructuras de malla cristalina altamente ordenadas y resilientes.
 
 ## **📂 Estructura del Proyecto**
 
@@ -17,9 +17,9 @@ Necesitas tener instalado Python 3.x y la librería networkx para los cálculos 
 
 pip install networkx
 
-### **2\. Generar el Universo (Sintropía)**
+### **2\. Generar datos de red (generador)**
 
-Ejecuta el generador para crear una estructura de orden perfecto (0.0 de Entropía). Esto creará el archivo syntropy\_100.json.
+Ejecuta el generador para crear una estructura de orden perfecto (0.0 de Entropía). Esto creará el archivo coherencia\_100.json.
 
 python data\_generator.py \--nodes 100
 
@@ -34,14 +34,14 @@ python attack\_simulator.py \--damage 0.2
 
 Simplemente abre index.html en tu navegador.
 
-* **Ver Sintropía:** Carga los datos de la red perfecta.  
+* **Ver red (ejemplo):** Carga los datos de la red perfecta.  
 * **Simular Ataque:** Muestra visualmente los daños y la fragmentación.
 
 ## **🛠️ Detalles Técnicos**
 
 ### **Algoritmo de Convergencia**
 
-El script data\_generator.py utiliza un modelo de atracción gravitacional donde los nodos con mayor coherencia actúan como "Hubs", atrayendo y realineando a los nodos caóticos cercanos hasta alcanzar un estado de equilibrio (Sintropía \= 1.0).
+El script data\_generator.py utiliza un modelo de atracción gravitacional donde los nodos con mayor coherencia actúan como "Hubs", atrayendo y realineando a los nodos caóticos cercanos hasta alcanzar un estado de equilibrio (coherencia \= 1.0).
 
 ### **Métricas de Resiliencia**
 
@@ -50,4 +50,4 @@ El attack\_simulator.py no solo borra nodos; realiza un análisis de grafos para
 * **Fragmentación:** En cuántas "islas" desconectadas se ha roto la red.  
 * **Eficiencia Global:** La capacidad restante de la red para transmitir información de un punto A a un punto B.
 
-© 2025 Proyecto Sintropía. Open Source.
+© 2025 Visor de redes. Open Source.

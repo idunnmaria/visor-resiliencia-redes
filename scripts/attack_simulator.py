@@ -164,8 +164,8 @@ def graph_to_json_like(original_data: Dict[str, Any], G: nx.Graph) -> Dict[str, 
 
 def main() -> None:
     p = argparse.ArgumentParser(description="Visor Redes — simulador de ataque (eliminación aleatoria de nodos).")
-    p.add_argument("--input", default="syntropy_100.json", help="JSON de entrada.")
-    p.add_argument("--output", default="syntropy_attacked.json", help="JSON de salida.")
+    p.add_argument("--input", default="network.json", help="JSON de entrada.")
+    p.add_argument("--output", default="network_attacked.json", help="JSON de salida.")
     p.add_argument("--attack-rate", type=float, default=0.30, help="Proporción de nodos eliminados (0..1).")
     p.add_argument("--seed", type=int, default=None, help="Semilla RNG.")
     p.add_argument("--compute-efficiency", action="store_true", help="Calcula global_efficiency (solo grafos pequeños).")

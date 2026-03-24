@@ -6,9 +6,9 @@ from datetime import datetime
 
 # --- CONFIGURACIÓN ---
 DEFAULT_NODES = 80
-OUTPUT_FILE = "syntropy_100.json"
+OUTPUT_FILE = "network.json"
 
-class SyntropyEngine:
+class NetworkGenerator:
     def __init__(self, num_nodes):
         self.num_nodes = num_nodes
         self.nodes = []
@@ -81,7 +81,7 @@ class SyntropyEngine:
             },
             "metrics": {
                 "final_entropy": 0.0,
-                "final_syntropy": 1.0
+                "final_coherence": 1.0
             },
             "data": {
                 "nodes": self.nodes,
@@ -98,7 +98,7 @@ if __name__ == "__main__":
     parser.add_argument('--output', type=str, default=OUTPUT_FILE)
     args = parser.parse_args()
 
-    engine = SyntropyEngine(args.nodes)
+    engine = NetworkGenerator(args.nodes)
     engine.initialize()
     engine.crystallize()
     engine.save(args.output)
