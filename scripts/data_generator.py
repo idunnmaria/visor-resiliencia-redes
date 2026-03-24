@@ -81,7 +81,7 @@ class NetworkGenerator:
             },
             "metrics": {
                 "final_entropy": 0.0,
-                "final_syntropy": 1.0
+                "final_coherence": 1.0
             },
             "data": {
                 "nodes": self.nodes,
